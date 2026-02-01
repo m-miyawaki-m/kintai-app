@@ -1,0 +1,138 @@
+<script setup lang="ts">
+import { ref, computed } from 'vue'
+import { useRouter } from 'vue-router'
+import { useAuth } from '@/composables/useAuth'
+import LoadingSpinner from '@/components/LoadingSpinner.vue'
+
+const router = useRouter()
+const { login, register, error, isLoading } = useAuth()
+
+const isRegisterMode = ref(false)
+const email = ref('')
+const password = ref('')
+const displayName = ref('')
+
+// Dev mode users
+const devUsers = [
+  { label: '-- ユーザー選択 --', email: '', password: '' },
+  { label: '管理者 (admin)', email: 'admin@example.com', password: 'admin123' },
+  { label: '一般ユーザー (user01)', email: 'user01@example.com', password: 'password' },
+]
+
+const isDevMode = computed(() => import.meta.env.VITE_USE_EMULATORS === 'true')
+
+function selectDevUser(event: Event) {
+  const select = event.target as HTMLSelectElement
+  const user = devUsers[select.selectedIndex]
+  if (user.email) {
+    email.value = user.email
+    password.value = user.password
+  }
+}
+
+async function handleSubmit() {
+  try {
+    if (isRegisterMode.value) {
+      await register(email.value, password.value, displayName.value)
+      router.push('/attendance')
+    } else {
+      const user = await login(email.value, password.value)
+      if (user?.role === 'admin') {
+        router.push('/admin')
+      } else {
+        router.push('/attendance')
+      }
+    }
+  } catch (e) {
+    // Error is handled by useAuth
+  }
+}
+
+function toggleMode() {
+  isRegisterMode.value = !isRegisterMode.value
+}
+</script>
+
+<template>
+  <div class="min-h-[80vh] flex flex-col items-center justify-center">
+    <!-- System title on login page -->
+    <h1 class="text-3xl font-bold text-primary-600 mb-8">勤怠管理</h1>
+
+    <div class="card w-full max-w-md">
+      <h2 class="text-2xl font-bold text-center mb-6">
+        {{ isRegisterMode ? '新規登録' : 'ログイン' }}
+      </h2>
+
+      <form @submit.prevent="handleSubmit" class="space-y-4">
+        <div v-if="isRegisterMode">
+          <label class="label">表示名</label>
+          <input
+            v-model="displayName"
+            type="text"
+            class="input"
+            placeholder="山田 太郎"
+            required
+          />
+        </div>
+
+        <div>
+          <label class="label">メールアドレス</label>
+          <input
+            v-model="email"
+            type="email"
+            class="input"
+            placeholder="example@email.com"
+            required
+          />
+        </div>
+
+        <div>
+          <label class="label">パスワード</label>
+          <input
+            v-model="password"
+            type="password"
+            class="input"
+            placeholder="6文字以上"
+            required
+            minlength="6"
+          />
+        </div>
+
+        <div v-if="error" class="text-red-600 text-sm">
+          {{ error }}
+        </div>
+
+        <button
+          type="submit"
+          class="btn btn-primary w-full"
+          :disabled="isLoading"
+        >
+          <LoadingSpinner v-if="isLoading" size="sm" color="text-white" />
+          <span v-else>{{ isRegisterMode ? '登録' : 'ログイン' }}</span>
+        </button>
+      </form>
+
+      <!-- Dev mode user selector -->
+      <div v-if="isDevMode" class="mt-4 pt-4 border-t border-gray-200">
+        <label class="label text-xs text-gray-500">【開発モード】ユーザー選択</label>
+        <select
+          @change="selectDevUser"
+          class="input text-sm"
+        >
+          <option v-for="user in devUsers" :key="user.email" :value="user.email">
+            {{ user.label }}
+          </option>
+        </select>
+      </div>
+
+      <div class="mt-4 text-center">
+        <button
+          @click="toggleMode"
+          class="text-primary-600 hover:underline text-sm"
+        >
+          {{ isRegisterMode ? 'アカウントをお持ちの方はこちら' : '新規登録はこちら' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</template>
