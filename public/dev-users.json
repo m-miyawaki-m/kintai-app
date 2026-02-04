@@ -5,6 +5,11 @@
     "password": "admin123"
   },
   {
+    "label": "鈴木 一郎 (主任)",
+    "email": "supervisor@example.com",
+    "password": "password"
+  },
+  {
     "label": "山田 太郎 (一般)",
     "email": "user01@example.com",
     "password": "password"
@@ -12,6 +17,21 @@
   {
     "label": "佐藤 花子 (一般)",
     "email": "user02@example.com",
+    "password": "password"
+  },
+  {
+    "label": "田中 次郎 (一般)",
+    "email": "user03@example.com",
+    "password": "password"
+  },
+  {
+    "label": "高橋 美咲 (一般)",
+    "email": "user04@example.com",
+    "password": "password"
+  },
+  {
+    "label": "伊藤 健太 (一般)",
+    "email": "user05@example.com",
     "password": "password"
   }
 ]
