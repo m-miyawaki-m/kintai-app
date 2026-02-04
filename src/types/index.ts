@@ -4,7 +4,8 @@ export interface User {
   uid: string
   email: string
   displayName: string
-  role: 'user' | 'admin'
+  role: 'user' | 'supervisor' | 'admin'
+  subordinates?: string[] // UIDs of subordinate users (for supervisor)
   createdAt: Timestamp
 }
 

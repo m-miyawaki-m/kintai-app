@@ -21,6 +21,8 @@ export function useAuth() {
     currentUser: computed(() => store.currentUser),
     isAuthenticated: computed(() => store.isAuthenticated),
     isAdmin: computed(() => store.isAdmin),
+    isSupervisor: computed(() => store.isSupervisor),
+    subordinates: computed(() => store.subordinates),
     isLoading: computed(() => store.isLoading),
     error,
     login: store.login.bind(store),

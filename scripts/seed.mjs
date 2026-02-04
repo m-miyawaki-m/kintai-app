@@ -30,6 +30,12 @@ const testUsers = [
     role: 'admin'
   },
   {
+    email: 'supervisor@example.com',
+    password: 'password',
+    displayName: '鈴木 一郎',
+    role: 'supervisor'
+  },
+  {
     email: 'user01@example.com',
     password: 'password',
     displayName: '山田 太郎',
@@ -40,8 +46,29 @@ const testUsers = [
     password: 'password',
     displayName: '佐藤 花子',
     role: 'user'
+  },
+  {
+    email: 'user03@example.com',
+    password: 'password',
+    displayName: '田中 次郎',
+    role: 'user'
+  },
+  {
+    email: 'user04@example.com',
+    password: 'password',
+    displayName: '高橋 美咲',
+    role: 'user'
+  },
+  {
+    email: 'user05@example.com',
+    password: 'password',
+    displayName: '伊藤 健太',
+    role: 'user'
   }
 ]
+
+// Map to store created user UIDs
+const userUids = new Map()
 
 async function createUser(userData) {
   try {
@@ -66,21 +93,70 @@ async function createUser(userData) {
       await new Promise(resolve => setTimeout(resolve, 500))
     }
 
-    // Update Firestore document with correct role (overwrite trigger's default)
-    await db.collection('users').doc(uid).set({
+    // Store UID for later reference
+    userUids.set(userData.email, uid)
+
+    // Update Firestore document with correct role
+    const docData = {
       uid: uid,
       email: userData.email,
       displayName: userData.displayName,
       role: userData.role,
       createdAt: FieldValue.serverTimestamp()
-    })
+    }
 
+    await db.collection('users').doc(uid).set(docData)
     console.log(`  ✅ Set Firestore doc with role: ${userData.role}`)
 
     return uid
   } catch (error) {
     console.error(`  ❌ Error creating user ${userData.email}:`, error.message)
     throw error
+  }
+}
+
+async function assignSubordinates() {
+  // Assign subordinates to supervisor
+  const supervisorUid = userUids.get('supervisor@example.com')
+  const subordinateEmails = [
+    'user01@example.com',
+    'user02@example.com',
+    'user03@example.com',
+    'user04@example.com',
+    'user05@example.com'
+  ]
+  const subordinateUids = subordinateEmails.map(email => userUids.get(email))
+
+  await db.collection('users').doc(supervisorUid).update({
+    subordinates: subordinateUids
+  })
+  console.log(`  ✅ Assigned ${subordinateUids.length} subordinates to supervisor`)
+}
+
+function getRoleLabel(role) {
+  switch (role) {
+    case 'admin': return '管理者'
+    case 'supervisor': return '主任'
+    default: return '一般'
+  }
+}
+
+async function verifyAndFixRoles() {
+  console.log('\nVerifying user roles...')
+  for (const userData of testUsers) {
+    const uid = userUids.get(userData.email)
+    if (!uid) continue
+
+    const docRef = db.collection('users').doc(uid)
+    const doc = await docRef.get()
+    const data = doc.data()
+
+    if (data && data.role !== userData.role) {
+      console.log(`  ⚠️  Fixing role for ${userData.email}: ${data.role} -> ${userData.role}`)
+      await docRef.update({ role: userData.role })
+    } else if (data) {
+      console.log(`  ✅ Role correct for ${userData.email}: ${data.role}`)
+    }
   }
 }
 
@@ -104,9 +180,20 @@ async function seed() {
     await createUser(user)
   }
 
+  // Wait for Cloud Functions to complete
+  console.log('\nWaiting for Cloud Functions to complete...')
+  await new Promise(resolve => setTimeout(resolve, 2000))
+
+  // Verify and fix roles (in case Cloud Function overwrote them)
+  await verifyAndFixRoles()
+
+  // Assign subordinates to supervisor
+  console.log('\nAssigning subordinates...')
+  await assignSubordinates()
+
   // Generate dev users JSON for login page
   const devUsersJson = testUsers.map(u => ({
-    label: `${u.displayName} (${u.role === 'admin' ? '管理者' : '一般'})`,
+    label: `${u.displayName} (${getRoleLabel(u.role)})`,
     email: u.email,
     password: u.password
   }))
@@ -118,8 +205,12 @@ async function seed() {
   console.log('\n✨ Seeding complete!\n')
   console.log('Test accounts:')
   console.log('  📧 admin@example.com / admin123 (管理者)')
+  console.log('  📧 supervisor@example.com / password (主任)')
   console.log('  📧 user01@example.com / password (一般ユーザー)')
   console.log('  📧 user02@example.com / password (一般ユーザー)')
+  console.log('  📧 user03@example.com / password (一般ユーザー)')
+  console.log('  📧 user04@example.com / password (一般ユーザー)')
+  console.log('  📧 user05@example.com / password (一般ユーザー)')
   console.log('')
 
   process.exit(0)
