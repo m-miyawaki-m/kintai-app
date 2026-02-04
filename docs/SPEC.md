@@ -93,6 +93,20 @@ interface AttendanceRecord {
 }
 ```
 
+## ブランチ運用
+
+| ブランチ | 用途 |
+|---------|------|
+| `master` | 本番環境（Vercelデプロイ） |
+| `develop` | 開発ベース |
+| `feature/*` | 機能開発（developから切る） |
+
+**フロー:**
+1. `develop` から `feature/xxx` を作成
+2. 開発・コミット
+3. `develop` へPR作成・マージ
+4. リリース時に `develop` → `master` マージ
+
 ## 開発環境
 
 ### エミュレータ起動
@@ -196,3 +210,4 @@ const message = getAuthErrorMessage(error.code)
 | 2025-02-04 | Pinia導入（状態管理をComposablesからPinia storeに移行） |
 | 2025-02-04 | メッセージ管理を constants/messages.ts に分離 |
 | 2025-02-04 | 勤怠記録カードを共通コンポーネント化（出勤・退勤左右並び表示） |
+| 2025-02-05 | Git Flow運用開始（master/develop/feature） |

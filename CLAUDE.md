@@ -39,7 +39,19 @@ Output logs only at these points:
 - Code comments in English
 - Commit messages in English
 
-## Workflow
+## Git Branch Strategy
+- `master` - Production branch (deployed to Vercel)
+- `develop` - Development base branch
+- `feature/*` - Feature branches (branch from develop, merge to develop via PR)
+
+**Workflow:**
+1. Create feature branch from develop: `git checkout develop && git checkout -b feature/xxx`
+2. Develop and commit changes
+3. Push and create Pull Request to develop
+4. After review, merge to develop
+5. At release timing, merge develop to master and deploy
+
+## Development Workflow
 1. Read existing code before making changes
 2. Typecheck and lint must pass before commit
 3. Use Conventional Commits format
