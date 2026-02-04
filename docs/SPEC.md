@@ -101,11 +101,12 @@ interface AttendanceRecord {
 | `develop` | 開発ベース |
 | `feature/*` | 機能開発（developから切る） |
 
-**フロー:**
-1. `develop` から `feature/xxx` を作成
-2. 開発・コミット
-3. `develop` へPR作成・マージ
-4. リリース時に `develop` → `master` マージ
+**Issue駆動開発フロー:**
+1. GitHub Issueを確認（なければ作成）
+2. `develop` から `feature/issue-{番号}-{概要}` を作成
+3. 開発・コミット（コミットメッセージで `refs #番号` または `fix #番号`）
+4. `develop` へPR作成・マージ
+5. リリース時に `develop` → `master` マージ
 
 ## 開発環境
 
@@ -211,3 +212,4 @@ const message = getAuthErrorMessage(error.code)
 | 2025-02-04 | メッセージ管理を constants/messages.ts に分離 |
 | 2025-02-04 | 勤怠記録カードを共通コンポーネント化（出勤・退勤左右並び表示） |
 | 2025-02-05 | Git Flow運用開始（master/develop/feature） |
+| 2025-02-05 | Issue駆動開発ルール追加 |

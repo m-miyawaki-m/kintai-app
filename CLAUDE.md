@@ -44,12 +44,17 @@ Output logs only at these points:
 - `develop` - Development base branch
 - `feature/*` - Feature branches (branch from develop, merge to develop via PR)
 
+## Issue-Driven Development
+**REQUIRED**: All changes must be tracked via GitHub Issues.
+
 **Workflow:**
-1. Create feature branch from develop: `git checkout develop && git checkout -b feature/xxx`
-2. Develop and commit changes
-3. Push and create Pull Request to develop
-4. After review, merge to develop
-5. At release timing, merge develop to master and deploy
+1. When receiving a task, check existing GitHub Issues: `gh issue list`
+2. If no related issue exists, create one: `gh issue create --title "..." --body "..."`
+3. Create feature branch from develop: `git checkout develop && git checkout -b feature/issue-{番号}-{概要}`
+4. Develop and commit changes (reference issue in commits: `fix #123` or `refs #123`)
+5. Push and create Pull Request to develop (link to issue)
+6. After review, merge to develop (issue auto-closes if using `fix #123`)
+7. At release timing, merge develop to master and deploy
 
 ## Development Workflow
 1. Read existing code before making changes
