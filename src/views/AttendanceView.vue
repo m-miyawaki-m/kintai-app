@@ -5,6 +5,7 @@ import { useGeolocation } from '@/composables/useGeolocation'
 import { useAttendance } from '@/composables/useAttendance'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
 import LocationDisplay from '@/components/LocationDisplay.vue'
+import AttendanceRecordCard from '@/components/AttendanceRecordCard.vue'
 
 const { currentUser } = useAuth()
 const { state: geoState, getCurrentPosition, reset: resetGeo } = useGeolocation()
@@ -26,6 +27,13 @@ const canClockIn = computed(() => attendance.value?.canClockIn ?? false)
 const canClockOut = computed(() => attendance.value?.canClockOut ?? false)
 const attendanceError = computed(() => attendance.value?.error ?? null)
 const todayRecords = computed(() => attendance.value?.todayRecords ?? [])
+
+const todayClockIn = computed(() =>
+  todayRecords.value.find(r => r.type === 'clock_in') ?? null
+)
+const todayClockOut = computed(() =>
+  todayRecords.value.find(r => r.type === 'clock_out') ?? null
+)
 
 watch(currentUser, (user) => {
   if (user && !attendance.value) {
@@ -79,27 +87,33 @@ async function handleClockOut() {
     resetGeo()
   }
 }
-
-function formatTime(timestamp: any): string {
-  return attendance.value?.formatTime(timestamp) ?? '--:--'
-}
 </script>
 
 <template>
+  <!-- Full screen loading overlay -->
+  <div
+    v-if="actionInProgress"
+    class="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
+  >
+    <div class="bg-white rounded-lg p-8 flex flex-col items-center space-y-4">
+      <LoadingSpinner size="lg" />
+      <p class="text-lg font-medium">
+        {{ actionInProgress === 'clock_in' ? '出勤処理中...' : '退勤処理中...' }}
+      </p>
+      <LocationDisplay
+        :loading="geoState.loading"
+        :address="geoState.address"
+        :error="geoState.error"
+      />
+    </div>
+  </div>
+
   <div class="max-w-2xl mx-auto space-y-6">
     <div class="card">
       <div class="text-center mb-6">
         <div class="text-gray-500 text-sm">本日</div>
         <div class="text-xl font-medium">{{ todayFormatted }}</div>
       </div>
-
-      <LocationDisplay
-        v-if="actionInProgress"
-        :loading="geoState.loading"
-        :address="geoState.address"
-        :error="geoState.error"
-        class="mb-6"
-      />
 
       <div class="grid grid-cols-2 gap-4">
         <button
@@ -108,15 +122,8 @@ function formatTime(timestamp: any): string {
           class="btn btn-success btn-lg flex flex-col items-center justify-center py-8"
           :class="{ 'opacity-50 cursor-not-allowed': !canClockIn }"
         >
-          <LoadingSpinner
-            v-if="actionInProgress === 'clock_in'"
-            size="lg"
-            color="text-white"
-          />
-          <template v-else>
-            <span class="text-3xl mb-2">出勤</span>
-            <span class="text-sm opacity-80">Clock In</span>
-          </template>
+          <span class="text-3xl mb-2">出勤</span>
+          <span class="text-sm opacity-80">Clock In</span>
         </button>
 
         <button
@@ -125,15 +132,8 @@ function formatTime(timestamp: any): string {
           class="btn btn-danger btn-lg flex flex-col items-center justify-center py-8"
           :class="{ 'opacity-50 cursor-not-allowed': !canClockOut }"
         >
-          <LoadingSpinner
-            v-if="actionInProgress === 'clock_out'"
-            size="lg"
-            color="text-white"
-          />
-          <template v-else>
-            <span class="text-3xl mb-2">退勤</span>
-            <span class="text-sm opacity-80">Clock Out</span>
-          </template>
+          <span class="text-3xl mb-2">退勤</span>
+          <span class="text-sm opacity-80">Clock Out</span>
         </button>
       </div>
 
@@ -142,39 +142,13 @@ function formatTime(timestamp: any): string {
       </div>
     </div>
 
-    <div class="card">
+    <div>
       <h3 class="text-lg font-medium mb-4">本日の勤怠記録</h3>
-
-      <div v-if="todayRecords.length === 0" class="text-gray-500 text-center py-4">
-        まだ記録がありません
-      </div>
-
-      <div v-else class="space-y-3">
-        <div
-          v-for="record in todayRecords"
-          :key="record.id"
-          class="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-        >
-          <div class="flex items-center space-x-3">
-            <span
-              :class="[
-                'px-2 py-1 text-xs font-medium rounded',
-                record.type === 'clock_in'
-                  ? 'bg-green-100 text-green-700'
-                  : 'bg-red-100 text-red-700'
-              ]"
-            >
-              {{ record.type === 'clock_in' ? '出勤' : '退勤' }}
-            </span>
-            <span class="font-medium">
-              {{ formatTime(record.timestamp) }}
-            </span>
-          </div>
-          <div class="text-sm text-gray-500 max-w-[200px] truncate">
-            {{ record.location.address }}
-          </div>
-        </div>
-      </div>
+      <AttendanceRecordCard
+        :clock-in="todayClockIn"
+        :clock-out="todayClockOut"
+        :show-status="true"
+      />
     </div>
   </div>
 </template>

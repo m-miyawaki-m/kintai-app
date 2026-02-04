@@ -3,14 +3,13 @@ import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import {
   collection,
   query,
-  where,
   orderBy,
-  onSnapshot,
-  Timestamp
+  onSnapshot
 } from 'firebase/firestore'
 import { db } from '@/services/firebase'
 import type { AttendanceRecord, User } from '@/types'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
+import AttendanceRecordCard from '@/components/AttendanceRecordCard.vue'
 
 const activeTab = ref<'status' | 'history'>('status')
 const records = ref<AttendanceRecord[]>([])
@@ -37,34 +36,30 @@ const currentStatusList = computed(() => {
   const todayRecords = records.value.filter(r => r.date === today.value)
   const userStatusMap = new Map<string, {
     userName: string
-    status: 'working' | 'left' | 'not_started'
-    records: AttendanceRecord[]
+    clockIn: AttendanceRecord | null
+    clockOut: AttendanceRecord | null
   }>()
 
-  // Initialize all users as not started
+  // Initialize all users
   for (const user of users.value) {
     if (user.role !== 'admin') {
       userStatusMap.set(user.uid, {
         userName: user.displayName,
-        status: 'not_started',
-        records: []
+        clockIn: null,
+        clockOut: null
       })
     }
   }
 
-  // Update status based on today's records
+  // Update based on today's records
   for (const record of todayRecords) {
     const current = userStatusMap.get(record.userId)
     if (current) {
-      const userRecords = todayRecords
-        .filter(r => r.userId === record.userId)
-        .sort((a, b) => (a.timestamp?.toMillis() || 0) - (b.timestamp?.toMillis() || 0))
-
-      const clockIns = userRecords.filter(r => r.type === 'clock_in').length
-      const clockOuts = userRecords.filter(r => r.type === 'clock_out').length
-
-      current.status = clockIns > clockOuts ? 'working' : 'left'
-      current.records = userRecords
+      if (record.type === 'clock_in' && !current.clockIn) {
+        current.clockIn = record
+      } else if (record.type === 'clock_out' && !current.clockOut) {
+        current.clockOut = record
+      }
     }
   }
 
@@ -72,19 +67,16 @@ const currentStatusList = computed(() => {
 })
 
 const groupedRecords = computed(() => {
-  const groups: Record<string, AttendanceRecord[]> = {}
+  const groups: Record<string, { clockIn: AttendanceRecord | null, clockOut: AttendanceRecord | null }> = {}
   for (const record of records.value.filter(r => r.date === selectedDate.value)) {
     if (!groups[record.userName]) {
-      groups[record.userName] = []
+      groups[record.userName] = { clockIn: null, clockOut: null }
     }
-    groups[record.userName].push(record)
-  }
-  for (const userName in groups) {
-    groups[userName].sort((a, b) => {
-      const timeA = a.timestamp?.toMillis() || 0
-      const timeB = b.timestamp?.toMillis() || 0
-      return timeA - timeB
-    })
+    if (record.type === 'clock_in' && !groups[record.userName].clockIn) {
+      groups[record.userName].clockIn = record
+    } else if (record.type === 'clock_out' && !groups[record.userName].clockOut) {
+      groups[record.userName].clockOut = record
+    }
   }
   return groups
 })
@@ -123,35 +115,6 @@ function subscribeToUsers() {
   }, (error) => {
     console.error('Error fetching users:', error)
   })
-}
-
-function formatTime(timestamp: Timestamp): string {
-  if (!timestamp) return '--:--'
-  const date = timestamp.toDate()
-  return date.toLocaleTimeString('ja-JP', {
-    hour: '2-digit',
-    minute: '2-digit'
-  })
-}
-
-function getStatusStyle(status: 'working' | 'left' | 'not_started') {
-  switch (status) {
-    case 'working':
-      return { text: '勤務中', class: 'bg-green-100 text-green-700' }
-    case 'left':
-      return { text: '退勤済', class: 'bg-blue-100 text-blue-700' }
-    default:
-      return { text: '未出勤', class: 'bg-gray-100 text-gray-600' }
-  }
-}
-
-function getRecordStatus(userRecords: AttendanceRecord[]) {
-  const clockIns = userRecords.filter(r => r.type === 'clock_in').length
-  const clockOuts = userRecords.filter(r => r.type === 'clock_out').length
-
-  if (clockIns === 0) return { text: '未出勤', class: 'bg-gray-100 text-gray-600' }
-  if (clockIns > clockOuts) return { text: '勤務中', class: 'bg-green-100 text-green-700' }
-  return { text: '退勤済', class: 'bg-blue-100 text-blue-700' }
 }
 
 onMounted(() => {
@@ -218,46 +181,14 @@ onUnmounted(() => {
         </div>
 
         <div v-else class="space-y-4">
-          <div
+          <AttendanceRecordCard
             v-for="item in currentStatusList"
             :key="item.userName"
-            class="border rounded-lg p-4"
-          >
-            <div class="flex items-center justify-between mb-3">
-              <div class="font-medium text-lg">{{ item.userName }}</div>
-              <span
-                :class="[
-                  'px-3 py-1 text-sm rounded-full',
-                  getStatusStyle(item.status).class
-                ]"
-              >
-                {{ getStatusStyle(item.status).text }}
-              </span>
-            </div>
-
-            <div v-if="item.records.length > 0" class="grid grid-cols-1 md:grid-cols-2 gap-2">
-              <div
-                v-for="record in item.records"
-                :key="record.id"
-                class="flex items-center space-x-2 text-sm p-2 bg-gray-50 rounded"
-              >
-                <span
-                  :class="[
-                    'px-2 py-0.5 text-xs font-medium rounded',
-                    record.type === 'clock_in'
-                      ? 'bg-green-100 text-green-700'
-                      : 'bg-red-100 text-red-700'
-                  ]"
-                >
-                  {{ record.type === 'clock_in' ? '出勤' : '退勤' }}
-                </span>
-                <span class="font-medium">{{ formatTime(record.timestamp) }}</span>
-                <span class="text-gray-500 truncate flex-1">
-                  {{ record.location.address }}
-                </span>
-              </div>
-            </div>
-          </div>
+            :user-name="item.userName"
+            :clock-in="item.clockIn"
+            :clock-out="item.clockOut"
+            :show-status="true"
+          />
         </div>
       </div>
 
@@ -284,46 +215,14 @@ onUnmounted(() => {
         </div>
 
         <div v-else class="space-y-4">
-          <div
-            v-for="(userRecords, userName) in groupedRecords"
+          <AttendanceRecordCard
+            v-for="(data, userName) in groupedRecords"
             :key="userName"
-            class="border rounded-lg p-4"
-          >
-            <div class="flex items-center justify-between mb-3">
-              <div class="font-medium text-lg">{{ userName }}</div>
-              <span
-                :class="[
-                  'px-3 py-1 text-sm rounded-full',
-                  getRecordStatus(userRecords).class
-                ]"
-              >
-                {{ getRecordStatus(userRecords).text }}
-              </span>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
-              <div
-                v-for="record in userRecords"
-                :key="record.id"
-                class="flex items-center space-x-2 text-sm p-2 bg-gray-50 rounded"
-              >
-                <span
-                  :class="[
-                    'px-2 py-0.5 text-xs font-medium rounded',
-                    record.type === 'clock_in'
-                      ? 'bg-green-100 text-green-700'
-                      : 'bg-red-100 text-red-700'
-                  ]"
-                >
-                  {{ record.type === 'clock_in' ? '出勤' : '退勤' }}
-                </span>
-                <span class="font-medium">{{ formatTime(record.timestamp) }}</span>
-                <span class="text-gray-500 truncate flex-1">
-                  {{ record.location.address }}
-                </span>
-              </div>
-            </div>
-          </div>
+            :user-name="String(userName)"
+            :clock-in="data.clockIn"
+            :clock-out="data.clockOut"
+            :show-status="true"
+          />
         </div>
       </div>
     </div>

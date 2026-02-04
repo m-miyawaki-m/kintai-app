@@ -27,6 +27,13 @@ HERMOSライクな勤怠管理アプリ。出退勤を位置情報付きで記�
 - Prefer named exports
 - Vue: Use Composition API with `<script setup>`
 
+## Logging
+Output logs only at these points:
+- **API calls**: Request/response with key parameters (`console.log('API: methodName', { params })`)
+- **Errors**: All caught errors (`console.error('Context:', error)`)
+- **State changes**: Important state updates like login/logout (`console.log('State: description', data)`)
+- Do NOT log: Every function call, branch conditions, or trivial operations
+
 ## Language
 - Communicate in Japanese
 - Code comments in English
@@ -37,12 +44,17 @@ HERMOSライクな勤怠管理アプリ。出退勤を位置情報付きで記�
 2. Typecheck and lint must pass before commit
 3. Use Conventional Commits format
 4. Test with Firebase Emulator before deploying
+5. **REQUIRED**: Update specification docs (`docs/SPEC.md`) when modifying source code to keep docs and code in sync
 
 ## Directory Structure
 - `src/components/` - Reusable Vue components
 - `src/views/` - Page components
-- `src/composables/` - Vue composables (useAuth, useAttendance, useGeolocation)
+- `src/stores/` - Pinia stores (auth, attendance, geolocation)
+- `src/composables/` - Vue composables (wrappers for stores)
+- `src/constants/` - Constants and messages (messages.ts)
 - `src/services/` - Firebase and external API services
 - `src/types/` - TypeScript type definitions
 - `src/router/` - Vue Router configuration
 - `functions/` - Firebase Cloud Functions
+- `docs/` - Specification documents (SPEC.md)
+- `scripts/` - Development scripts (seed.mjs)

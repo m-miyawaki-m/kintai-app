@@ -1,0 +1,17 @@
+[
+  {
+    "label": "管理者 (管理者)",
+    "email": "admin@example.com",
+    "password": "admin123"
+  },
+  {
+    "label": "山田 太郎 (一般)",
+    "email": "user01@example.com",
+    "password": "password"
+  },
+  {
+    "label": "佐藤 花子 (一般)",
+    "email": "user02@example.com",
+    "password": "password"
+  }
+]
