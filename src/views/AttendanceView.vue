@@ -1,17 +1,37 @@
 <script setup lang="ts">
 import { ref, computed, onUnmounted, watch } from 'vue'
-import { useAuth } from '@/composables/useAuth'
+import {
+  collection,
+  query,
+  where,
+  onSnapshot,
+  doc,
+  getDoc
+} from 'firebase/firestore'
+import { db } from '@/services/firebase'
+import { useAuthStore } from '@/stores/auth'
 import { useGeolocation } from '@/composables/useGeolocation'
 import { useAttendance } from '@/composables/useAttendance'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
 import LocationDisplay from '@/components/LocationDisplay.vue'
 import AttendanceRecordCard from '@/components/AttendanceRecordCard.vue'
+import type { AttendanceRecord, User } from '@/types'
 
-const { currentUser } = useAuth()
+const authStore = useAuthStore()
+authStore.initAuth()
+
+const currentUser = computed(() => authStore.user)
 const { state: geoState, getCurrentPosition, reset: resetGeo } = useGeolocation()
 
 const attendance = ref<ReturnType<typeof useAttendance> | null>(null)
 const actionInProgress = ref<'clock_in' | 'clock_out' | null>(null)
+
+// Subordinates data (for supervisor)
+const subordinateUsers = ref<User[]>([])
+const subordinateRecords = ref<AttendanceRecord[]>([])
+let unsubscribeSubordinates: (() => void) | null = null
+
+const today = computed(() => new Date().toISOString().split('T')[0])
 
 const todayFormatted = computed(() => {
   const now = new Date()
@@ -35,15 +55,71 @@ const todayClockOut = computed(() =>
   todayRecords.value.find(r => r.type === 'clock_out') ?? null
 )
 
-watch(currentUser, (user) => {
+// Subordinates attendance data grouped by user
+const subordinateAttendance = computed(() => {
+  return subordinateUsers.value.map(user => {
+    const userRecords = subordinateRecords.value.filter(
+      r => r.userId === user.uid && r.date === today.value
+    )
+    return {
+      user,
+      clockIn: userRecords.find(r => r.type === 'clock_in') ?? null,
+      clockOut: userRecords.find(r => r.type === 'clock_out') ?? null
+    }
+  })
+})
+
+watch(() => authStore.user, (user) => {
   if (user && !attendance.value) {
-    attendance.value = useAttendance(user.uid, user.displayName)
-    attendance.value.subscribeToTodayRecords()
+    const att = useAttendance(user.uid, user.displayName)
+    attendance.value = att
+    att.subscribeToTodayRecords()
   }
-}, { immediate: true, deep: true })
+}, { immediate: true })
+
+// Subscribe to subordinates data when user is supervisor
+watch(() => authStore.user, async (user) => {
+  if (!user || user.role !== 'supervisor' || !user.subordinates?.length) {
+    subordinateUsers.value = []
+    subordinateRecords.value = []
+    return
+  }
+
+  const subs = user.subordinates
+  console.log('State: Loading subordinates data', { count: subs.length })
+
+  // Fetch subordinate user profiles
+  const users: User[] = []
+  for (const uid of subs) {
+    const userDoc = await getDoc(doc(db, 'users', uid))
+    if (userDoc.exists()) {
+      users.push(userDoc.data() as User)
+    }
+  }
+  subordinateUsers.value = users
+  console.log('State: Loaded subordinate users', { count: users.length })
+
+  // Subscribe to subordinates' attendance records
+  if (unsubscribeSubordinates) unsubscribeSubordinates()
+
+  const q = query(
+    collection(db, 'attendances'),
+    where('userId', 'in', subs),
+    where('date', '==', today.value)
+  )
+
+  unsubscribeSubordinates = onSnapshot(q, (snapshot) => {
+    subordinateRecords.value = snapshot.docs.map(d => ({
+      id: d.id,
+      ...d.data()
+    } as AttendanceRecord))
+    console.log('State: Subordinates records updated', { count: subordinateRecords.value.length })
+  })
+}, { immediate: true })
 
 onUnmounted(() => {
   attendance.value?.unsubscribeFromRecords()
+  if (unsubscribeSubordinates) unsubscribeSubordinates()
 })
 
 async function handleClockIn() {
@@ -145,10 +221,29 @@ async function handleClockOut() {
     <div>
       <h3 class="text-lg font-medium mb-4">本日の勤怠記録</h3>
       <AttendanceRecordCard
+        :user-name="currentUser?.displayName"
         :clock-in="todayClockIn"
         :clock-out="todayClockOut"
         :show-status="true"
       />
+    </div>
+
+    <!-- Subordinates section (for supervisor only) -->
+    <div v-if="currentUser?.role === 'supervisor'">
+      <h3 class="text-lg font-medium mb-4">配下メンバーの勤怠状況</h3>
+      <div v-if="subordinateUsers.length === 0" class="text-gray-500 text-center py-4">
+        配下メンバーを読み込み中...
+      </div>
+      <div v-else class="space-y-2">
+        <AttendanceRecordCard
+          v-for="item in subordinateAttendance"
+          :key="item.user.uid"
+          :user-name="item.user.displayName"
+          :clock-in="item.clockIn"
+          :clock-out="item.clockOut"
+          :show-status="true"
+        />
+      </div>
     </div>
   </div>
 </template>

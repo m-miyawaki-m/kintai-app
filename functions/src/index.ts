@@ -8,16 +8,25 @@ const db = admin.firestore()
 
 // Create user document when a new user signs up
 export const onUserCreate = functions.auth.user().onCreate(async (user) => {
-  const userDoc = {
-    uid: user.uid,
-    email: user.email || '',
-    displayName: user.displayName || user.email?.split('@')[0] || 'User',
-    role: 'user' as const,
-    createdAt: FieldValue.serverTimestamp()
-  }
+  const docRef = db.collection('users').doc(user.uid)
 
   try {
-    await db.collection('users').doc(user.uid).set(userDoc)
+    // Check if document already exists (e.g., created by seed script)
+    const existingDoc = await docRef.get()
+    if (existingDoc.exists) {
+      functions.logger.info(`User document already exists for ${user.uid}, skipping`)
+      return
+    }
+
+    const userDoc = {
+      uid: user.uid,
+      email: user.email || '',
+      displayName: user.displayName || user.email?.split('@')[0] || 'User',
+      role: 'user' as const,
+      createdAt: FieldValue.serverTimestamp()
+    }
+
+    await docRef.set(userDoc)
     functions.logger.info(`User document created for ${user.uid}`)
   } catch (error) {
     functions.logger.error(`Error creating user document for ${user.uid}:`, error)

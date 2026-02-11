@@ -36,3 +36,8 @@ functions/lib
 # Environment
 .env
 .env.production
+
+# TypeScript build info
+*.tsbuildinfo
+vite.config.d.ts
+vite.config.js
