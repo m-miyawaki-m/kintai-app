@@ -40,9 +40,32 @@ Output logs only at these points:
 - Commit messages in English
 
 ## Git Branch Strategy
-- `master` - Production branch (deployed to Vercel)
+- `master` - Production branch (auto-deployed to Firebase Hosting via GitHub Actions)
 - `develop` - Development base branch
 - `feature/*` - Feature branches (branch from develop, merge to develop via PR)
+
+## CI/CD (GitHub Actions)
+Auto-deploy to Firebase Hosting on push/merge to master.
+
+**Required GitHub Secrets:**
+- `VITE_FIREBASE_API_KEY`
+- `VITE_FIREBASE_AUTH_DOMAIN`
+- `VITE_FIREBASE_PROJECT_ID`
+- `VITE_FIREBASE_STORAGE_BUCKET`
+- `VITE_FIREBASE_MESSAGING_SENDER_ID`
+- `VITE_FIREBASE_APP_ID`
+- `FIREBASE_SERVICE_ACCOUNT` (Firebase service account JSON)
+
+**Setup:**
+1. Go to Firebase Console > Project Settings > Service Accounts
+2. Generate new private key (JSON)
+3. Add JSON content to GitHub Secrets as `FIREBASE_SERVICE_ACCOUNT`
+4. Add Vite env vars to GitHub Secrets
+
+## Production Environment
+- URL: https://kintai-app-mm.web.app
+- Firebase Project: kintai-app-mm
+- Seed script: `node scripts/seed-production-rest.mjs`
 
 ## Issue-Driven Development
 **REQUIRED**: All changes must be tracked via GitHub Issues.
