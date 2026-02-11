@@ -23,11 +23,11 @@ const devUsers = ref<DevUser[]>([
   { label: '-- ユーザー選択 --', email: '', password: '' }
 ])
 
-const isDevMode = computed(() => import.meta.env.VITE_USE_EMULATORS === 'true')
+// Always show user selector for demo purposes
+const isDevMode = computed(() => true)
 
-// Load users from dev-users.json for dev mode
+// Load users from dev-users.json
 onMounted(async () => {
-  if (!isDevMode.value) return
 
   try {
     const res = await fetch('/dev-users.json')
