@@ -8,7 +8,7 @@
 const USE_EMULATOR = process.argv.includes('--emulator')
 
 const API_KEY = 'AIzaSyClBuW4V8tpaIW3FUqfe1VfehWnnLwe2iI'
-const PROJECT_ID = USE_EMULATOR ? 'your-project-id' : 'kintai-app-mm'
+const PROJECT_ID = 'kintai-app-mm'
 const AUTH_EMULATOR = 'http://127.0.0.1:9099'
 const FIRESTORE_EMULATOR = 'http://127.0.0.1:8080'
 

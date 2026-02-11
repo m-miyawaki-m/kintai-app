@@ -16,8 +16,8 @@ const __dirname = dirname(fileURLToPath(import.meta.url))
 process.env.FIREBASE_AUTH_EMULATOR_HOST = '127.0.0.1:9099'
 process.env.FIRESTORE_EMULATOR_HOST = '127.0.0.1:8080'
 
-// Initialize Firebase Admin
-const app = initializeApp({ projectId: 'your-project-id' })
+// Initialize Firebase Admin (use same project as .firebaserc for emulator consistency)
+const app = initializeApp({ projectId: 'kintai-app-mm' })
 const auth = getAuth(app)
 const db = getFirestore(app)
 
