@@ -109,9 +109,15 @@ function subscribeToUsers() {
   const q = query(collection(db, 'users'))
 
   unsubscribeUsers = onSnapshot(q, (snapshot) => {
-    users.value = snapshot.docs.map(doc => ({
-      ...doc.data()
-    } as User))
+    // Deduplicate by uid
+    const userMap = new Map<string, User>()
+    snapshot.docs.forEach(doc => {
+      const data = doc.data() as User
+      if (data.uid && !userMap.has(data.uid)) {
+        userMap.set(data.uid, data)
+      }
+    })
+    users.value = Array.from(userMap.values())
   }, (error) => {
     console.error('Error fetching users:', error)
   })
