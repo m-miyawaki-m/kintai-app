@@ -5,13 +5,19 @@ import type { AttendanceRecord } from '@/types'
 import type { Timestamp } from 'firebase/firestore'
 
 // Mock Timestamp
-const createMockTimestamp = (dateStr: string): Timestamp => ({
-  toDate: () => new Date(dateStr),
-  seconds: Math.floor(new Date(dateStr).getTime() / 1000),
-  nanoseconds: 0,
-  toMillis: () => new Date(dateStr).getTime(),
-  isEqual: () => false
-} as Timestamp)
+const createMockTimestamp = (dateStr: string): Timestamp => {
+  const date = new Date(dateStr)
+  const seconds = Math.floor(date.getTime() / 1000)
+  return {
+    toDate: () => date,
+    seconds,
+    nanoseconds: 0,
+    toMillis: () => date.getTime(),
+    isEqual: () => false,
+    toJSON: () => ({ seconds, nanoseconds: 0 }),
+    valueOf: () => `${seconds}.0`
+  } as unknown as Timestamp
+}
 
 const createMockRecord = (
   type: 'clock_in' | 'clock_out',
