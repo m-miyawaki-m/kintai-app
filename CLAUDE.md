@@ -57,6 +57,14 @@ Output logs only at these points:
 7. At release timing, merge develop to master and deploy
 
 ## Development Workflow
+
+### Pre-modification Check (REQUIRED)
+**Before making ANY code changes, ALWAYS verify:**
+1. `git branch` - Check current branch
+2. `gh issue view <number>` or `gh issue list` - Check related issue
+3. Confirm the modification aligns with the current branch/issue purpose
+
+### General Rules
 1. Read existing code before making changes
 2. Typecheck and lint must pass before commit
 3. Use Conventional Commits format
