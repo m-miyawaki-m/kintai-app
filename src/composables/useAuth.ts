@@ -14,7 +14,7 @@ export function useAuth() {
     store.initAuth()
   }
 
-  const { user, loading, error } = storeToRefs(store)
+  const { user, error } = storeToRefs(store)
 
   return {
     user,

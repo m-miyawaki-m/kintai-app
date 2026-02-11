@@ -71,8 +71,9 @@ const subordinateAttendance = computed(() => {
 
 watch(() => authStore.user, (user) => {
   if (user && !attendance.value) {
-    attendance.value = useAttendance(user.uid, user.displayName)
-    attendance.value.subscribeToTodayRecords()
+    const att = useAttendance(user.uid, user.displayName)
+    attendance.value = att
+    att.subscribeToTodayRecords()
   }
 }, { immediate: true })
 
