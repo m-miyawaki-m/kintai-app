@@ -4,20 +4,16 @@
     {
       "label": "Open Claude Terminals",
       "dependsOn": [
-        "Claude: Requirements",
-        "Claude: Review",
-        "Claude: Implementation"
+        "Review",
+        "Impl"
       ],
       "dependsOrder": "parallel",
-      "runOptions": {
-        "runOn": "folderOpen"
-      },
       "problemMatcher": []
     },
     {
-      "label": "Claude: Requirements",
+      "label": "Review",
       "type": "shell",
-      "command": "echo '=== Requirements Tab ===' && echo 'Run: claude' && exec bash",
+      "command": "/home/m-miyawaki/.local/bin/claude",
       "isBackground": true,
       "presentation": {
         "reveal": "always",
@@ -27,21 +23,9 @@
       "problemMatcher": []
     },
     {
-      "label": "Claude: Review",
+      "label": "Impl",
       "type": "shell",
-      "command": "echo '=== Review Tab ===' && echo 'Run: claude' && exec bash",
-      "isBackground": true,
-      "presentation": {
-        "reveal": "always",
-        "panel": "dedicated",
-        "group": "claude"
-      },
-      "problemMatcher": []
-    },
-    {
-      "label": "Claude: Implementation",
-      "type": "shell",
-      "command": "echo '=== Implementation Tab ===' && echo 'Run: claude' && exec bash",
+      "command": "/home/m-miyawaki/.local/bin/claude",
       "isBackground": true,
       "presentation": {
         "reveal": "always",
