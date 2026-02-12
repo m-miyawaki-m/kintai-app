@@ -1,0 +1,38 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Open Claude Terminals",
+      "dependsOn": [
+        "Review",
+        "Impl"
+      ],
+      "dependsOrder": "parallel",
+      "problemMatcher": []
+    },
+    {
+      "label": "Review",
+      "type": "shell",
+      "command": "/home/m-miyawaki/.local/bin/claude",
+      "isBackground": true,
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "claude"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Impl",
+      "type": "shell",
+      "command": "/home/m-miyawaki/.local/bin/claude",
+      "isBackground": true,
+      "presentation": {
+        "reveal": "always",
+        "panel": "dedicated",
+        "group": "claude"
+      },
+      "problemMatcher": []
+    }
+  ]
+}
