@@ -3,7 +3,14 @@
  * Creates test users without requiring service account
  */
 
-const API_KEY = 'AIzaSyClBuW4V8tpaIW3FUqfe1VfehWnnLwe2iI'
+// API key must be set via environment variable (not hardcoded for security)
+const API_KEY = process.env.FIREBASE_API_KEY
+if (!API_KEY) {
+  console.error('❌ FIREBASE_API_KEY environment variable is required')
+  console.error('   Set it before running: export FIREBASE_API_KEY=your-api-key')
+  process.exit(1)
+}
+
 const PROJECT_ID = 'kintai-app-mm'
 
 // Test users to create
