@@ -1,3 +1,9 @@
+/**
+ * AttendanceView page component.
+ * Main page for regular users and supervisors.
+ * - Regular users: clock in/out with geolocation, view today's record
+ * - Supervisors: additionally view subordinates' attendance in real-time
+ */
 <script setup lang="ts">
 import { ref, computed, onUnmounted, watch } from 'vue'
 import {
@@ -24,9 +30,10 @@ const currentUser = computed(() => authStore.user)
 const { state: geoState, getCurrentPosition, reset: resetGeo } = useGeolocation()
 
 const attendance = ref<ReturnType<typeof useAttendance> | null>(null)
+/** Tracks which action (clock_in/clock_out) is currently processing, null if idle */
 const actionInProgress = ref<'clock_in' | 'clock_out' | null>(null)
 
-// Subordinates data (for supervisor)
+// Subordinates data (supervisor-only: real-time attendance of managed users)
 const subordinateUsers = ref<User[]>([])
 const subordinateRecords = ref<AttendanceRecord[]>([])
 let unsubscribeSubordinates: (() => void) | null = null
@@ -55,7 +62,7 @@ const todayClockOut = computed(() =>
   todayRecords.value.find(r => r.type === 'clock_out') ?? null
 )
 
-// Subordinates attendance data grouped by user
+/** Group subordinate attendance records by user for display in the subordinates section */
 const subordinateAttendance = computed(() => {
   return subordinateUsers.value.map(user => {
     const userRecords = subordinateRecords.value.filter(
@@ -77,7 +84,7 @@ watch(() => authStore.user, (user) => {
   }
 }, { immediate: true })
 
-// Subscribe to subordinates data when user is supervisor
+// When a supervisor logs in, fetch subordinate profiles and subscribe to their attendance
 watch(() => authStore.user, async (user) => {
   if (!user || user.role !== 'supervisor' || !user.subordinates?.length) {
     subordinateUsers.value = []
@@ -122,6 +129,7 @@ onUnmounted(() => {
   if (unsubscribeSubordinates) unsubscribeSubordinates()
 })
 
+/** Handle clock-in: get GPS position, resolve address, then save record */
 async function handleClockIn() {
   if (!attendance.value || !currentUser.value) return
 
@@ -143,6 +151,7 @@ async function handleClockIn() {
   }
 }
 
+/** Handle clock-out: get GPS position, resolve address, then save record */
 async function handleClockOut() {
   if (!attendance.value || !currentUser.value) return
 

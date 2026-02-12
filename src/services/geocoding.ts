@@ -1,5 +1,11 @@
+/**
+ * Reverse geocoding service using OpenStreetMap Nominatim API.
+ * Converts GPS coordinates into human-readable Japanese addresses.
+ */
+
 const NOMINATIM_BASE_URL = 'https://nominatim.openstreetmap.org'
 
+/** Response structure from the Nominatim reverse geocoding endpoint */
 interface NominatimResponse {
   display_name: string
   address: {
@@ -14,6 +20,13 @@ interface NominatimResponse {
   }
 }
 
+/**
+ * Convert latitude/longitude coordinates to a Japanese street address.
+ * Falls back to raw coordinates if the API call fails.
+ * @param latitude - GPS latitude
+ * @param longitude - GPS longitude
+ * @returns Formatted address string (e.g. "東京都 渋谷区 神南 道玄坂")
+ */
 export async function reverseGeocode(
   latitude: number,
   longitude: number
@@ -35,7 +48,7 @@ export async function reverseGeocode(
 
     const data: NominatimResponse = await response.json()
 
-    // Build a readable Japanese address
+    // Build a readable Japanese address from structured address components
     const address = data.address
     const parts: string[] = []
 

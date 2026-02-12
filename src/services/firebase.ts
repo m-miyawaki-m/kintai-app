@@ -1,8 +1,14 @@
+/**
+ * Firebase initialization and service exports.
+ * Connects to local emulators when VITE_USE_EMULATORS=true,
+ * otherwise uses the production Firebase project.
+ */
 import { initializeApp } from 'firebase/app'
 import { getAuth, connectAuthEmulator } from 'firebase/auth'
 import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore'
 import { getFunctions, connectFunctionsEmulator } from 'firebase/functions'
 
+/** Firebase configuration loaded from Vite environment variables */
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,

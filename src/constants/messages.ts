@@ -1,7 +1,9 @@
 /**
- * Application messages
+ * User-facing error messages mapped by error code.
+ * All messages are in Japanese for end-user display.
  */
 
+/** Firebase Authentication error codes to user-friendly messages */
 export const AUTH_ERRORS: Record<string, string> = {
   'auth/user-not-found': 'メールアドレスまたはパスワードが正しくありません',
   'auth/wrong-password': 'メールアドレスまたはパスワードが正しくありません',
@@ -12,6 +14,7 @@ export const AUTH_ERRORS: Record<string, string> = {
   default: 'エラーが発生しました。もう一度お試しください'
 }
 
+/** Browser Geolocation API error codes to user-friendly messages */
 export const GEOLOCATION_ERRORS: Record<string, string> = {
   'permission-denied': '位置情報の取得が許可されていません',
   'position-unavailable': '位置情報を取得できませんでした',
@@ -19,6 +22,7 @@ export const GEOLOCATION_ERRORS: Record<string, string> = {
   default: '位置情報の取得に失敗しました'
 }
 
+/** Attendance business logic error codes to user-friendly messages */
 export const ATTENDANCE_ERRORS: Record<string, string> = {
   'already-clocked-in': '既に出勤済みです',
   'not-clocked-in': 'まだ出勤していません',
@@ -27,16 +31,28 @@ export const ATTENDANCE_ERRORS: Record<string, string> = {
 }
 
 /**
- * Get error message by code
+ * Resolve a Firebase Auth error code to a localized message.
+ * @param code - Firebase Auth error code (e.g. 'auth/wrong-password')
+ * @returns User-friendly error message in Japanese
  */
 export function getAuthErrorMessage(code: string): string {
   return AUTH_ERRORS[code] ?? AUTH_ERRORS.default
 }
 
+/**
+ * Resolve a geolocation error code to a localized message.
+ * @param code - Geolocation error code (e.g. 'permission-denied')
+ * @returns User-friendly error message in Japanese
+ */
 export function getGeolocationErrorMessage(code: string): string {
   return GEOLOCATION_ERRORS[code] ?? GEOLOCATION_ERRORS.default
 }
 
+/**
+ * Resolve an attendance error code to a localized message.
+ * @param code - Attendance error code (e.g. 'already-clocked-in')
+ * @returns User-friendly error message in Japanese
+ */
 export function getAttendanceErrorMessage(code: string): string {
   return ATTENDANCE_ERRORS[code] ?? ATTENDANCE_ERRORS.default
 }
