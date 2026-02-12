@@ -1,11 +1,21 @@
+/**
+ * AttendanceRecordCard component.
+ * Displays a single user's daily attendance record as a horizontal card,
+ * showing status badge, clock-in/out times, and location addresses.
+ * Used in both employee and admin views.
+ */
 <script setup lang="ts">
 import type { AttendanceRecord } from '@/types'
 import type { Timestamp } from 'firebase/firestore'
 
 interface Props {
+  /** Clock-in record for the day, or null if not yet clocked in */
   clockIn?: AttendanceRecord | null
+  /** Clock-out record for the day, or null if not yet clocked out */
   clockOut?: AttendanceRecord | null
+  /** User's display name (shown when viewing others' records) */
   userName?: string
+  /** Whether to show the status badge (未出勤/勤務中/退勤済) */
   showStatus?: boolean
 }
 
@@ -16,6 +26,11 @@ const props = withDefaults(defineProps<Props>(), {
   showStatus: true
 })
 
+/**
+ * Format a Firestore Timestamp to 'HH:mm' display string.
+ * @param timestamp - Firestore Timestamp, or null/undefined
+ * @returns Formatted time (e.g. "09:30") or '--:--' if null
+ */
 function formatTime(timestamp: Timestamp | null | undefined): string {
   if (!timestamp) return '--:--'
   const date = timestamp.toDate()
@@ -25,6 +40,7 @@ function formatTime(timestamp: Timestamp | null | undefined): string {
   })
 }
 
+/** Determine attendance status badge text and CSS class based on clock-in/out state */
 function getStatus() {
   if (!props.clockIn) return { text: '未出勤', class: 'bg-gray-100 text-gray-600' }
   if (!props.clockOut) return { text: '勤務中', class: 'bg-green-100 text-green-700' }

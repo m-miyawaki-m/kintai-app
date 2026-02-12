@@ -1,3 +1,10 @@
+/**
+ * AdminView page component.
+ * Admin dashboard showing all employees' attendance status and history.
+ * Features two tabs:
+ * - "Current Status": real-time view of today's clock-in/out for all users
+ * - "History": date-selectable attendance history for all users
+ */
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import {
@@ -32,6 +39,7 @@ const todayFormatted = computed(() => {
   })
 })
 
+/** Build today's attendance status list for all non-admin users */
 const currentStatusList = computed(() => {
   const todayRecords = records.value.filter(r => r.date === today.value)
   const userStatusMap = new Map<string, {
@@ -66,6 +74,7 @@ const currentStatusList = computed(() => {
   return Array.from(userStatusMap.values())
 })
 
+/** Group attendance records by user name for the selected date in history tab */
 const groupedRecords = computed(() => {
   const groups: Record<string, { clockIn: AttendanceRecord | null, clockOut: AttendanceRecord | null }> = {}
   for (const record of records.value.filter(r => r.date === selectedDate.value)) {
@@ -81,6 +90,7 @@ const groupedRecords = computed(() => {
   return groups
 })
 
+/** Subscribe to all attendance records in Firestore (ordered by timestamp) */
 function subscribeToRecords() {
   if (unsubscribeRecords) unsubscribeRecords()
 
@@ -103,6 +113,7 @@ function subscribeToRecords() {
   })
 }
 
+/** Subscribe to all user profiles, deduplicating by UID */
 function subscribeToUsers() {
   if (unsubscribeUsers) unsubscribeUsers()
 

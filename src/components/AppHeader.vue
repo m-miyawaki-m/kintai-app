@@ -1,9 +1,15 @@
+/**
+ * AppHeader component.
+ * Displays the system title, current page name, user display name, and logout button.
+ * Shown on all pages except the login page (controlled by App.vue).
+ */
 <script setup lang="ts">
 import { computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuth } from '@/composables/useAuth'
 
 defineProps<{
+  /** Current page name displayed in the center of the header */
   pageName?: string
 }>()
 
@@ -12,6 +18,7 @@ const { currentUser, logout } = useAuth()
 
 const displayName = computed(() => currentUser.value?.displayName || 'ゲスト')
 
+/** Handle logout: sign out and redirect to login page */
 async function handleLogout() {
   try {
     await logout()

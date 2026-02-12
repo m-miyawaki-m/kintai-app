@@ -1,9 +1,16 @@
+/**
+ * LocationDisplay component.
+ * Shows the current geolocation state: loading spinner, resolved address, error, or prompt.
+ */
 <script setup lang="ts">
 import LoadingSpinner from './LoadingSpinner.vue'
 
 defineProps<{
+  /** Whether the geolocation request is in progress */
   loading: boolean
+  /** Resolved street address, or null if not yet fetched */
   address: string | null
+  /** Error message from geolocation, or null if no error */
   error: string | null
 }>()
 </script>

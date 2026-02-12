@@ -1,3 +1,7 @@
+/**
+ * Vue Router configuration with role-based navigation guards.
+ * Routes are protected by auth state and user role (admin vs regular user).
+ */
 import { createRouter, createWebHistory } from 'vue-router'
 import { auth, db } from '@/services/firebase'
 import { onAuthStateChanged } from 'firebase/auth'
@@ -31,7 +35,11 @@ const router = createRouter({
   ]
 })
 
-// Wait for auth state to be ready
+/**
+ * Wait for Firebase Auth to initialize and resolve the current user.
+ * Uses onAuthStateChanged to avoid race conditions on page load.
+ * @returns The authenticated Firebase user, or null if not logged in
+ */
 function getCurrentUser(): Promise<typeof auth.currentUser> {
   return new Promise((resolve) => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
@@ -41,6 +49,11 @@ function getCurrentUser(): Promise<typeof auth.currentUser> {
   })
 }
 
+/**
+ * Fetch user role from Firestore 'users' collection.
+ * @param uid - Firebase user UID
+ * @returns User role ('user' | 'supervisor' | 'admin'), or null if not found
+ */
 async function getUserRole(uid: string): Promise<string | null> {
   try {
     const userDoc = await getDoc(doc(db, 'users', uid))
@@ -51,6 +64,14 @@ async function getUserRole(uid: string): Promise<string | null> {
   }
 }
 
+/**
+ * Global navigation guard.
+ * Enforces authentication and role-based access control:
+ * - Guest-only pages redirect authenticated users to their dashboard
+ * - Protected pages redirect unauthenticated users to login
+ * - Admin pages are restricted to admin role
+ * - User pages redirect admins to admin dashboard
+ */
 router.beforeEach(async (to, _from, next) => {
   const currentUser = await getCurrentUser()
 

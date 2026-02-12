@@ -1,10 +1,19 @@
+/**
+ * Composable wrapper around the auth Pinia store.
+ * Provides reactive auth state and actions for use in Vue components.
+ * Automatically initializes the Firebase Auth listener on first call.
+ */
 import { computed } from 'vue'
 import { storeToRefs } from 'pinia'
 import { useAuthStore } from '@/stores/auth'
 
-// Initialize auth listener on first import
+/** Ensures the auth listener is initialized only once across all component instances */
 let initialized = false
 
+/**
+ * Composable providing authentication state and actions.
+ * @returns Reactive refs for user, auth status, and login/register/logout methods
+ */
 export function useAuth() {
   const store = useAuthStore()
 

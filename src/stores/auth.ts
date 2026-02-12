@@ -1,3 +1,8 @@
+/**
+ * Pinia store for authentication state management.
+ * Handles login, registration, logout, and auth state observation via Firebase Auth.
+ * User profile data is persisted in the Firestore 'users' collection.
+ */
 import { defineStore } from 'pinia'
 import {
   signInWithEmailAndPassword,
@@ -29,6 +34,12 @@ export const useAuthStore = defineStore('auth', {
   },
 
   actions: {
+    /**
+     * Fetch or create a user profile in Firestore.
+     * If no document exists, a new one is created with a default role.
+     * @param firebaseUser - Firebase Auth user object
+     * @returns User profile data, or null on failure
+     */
     async fetchUserData(firebaseUser: FirebaseUser): Promise<User | null> {
       const isAdminEmail = firebaseUser.email === 'admin@example.com'
       const role = isAdminEmail ? 'admin' : 'user'
@@ -69,6 +80,7 @@ export const useAuthStore = defineStore('auth', {
       }
     },
 
+    /** Subscribe to Firebase Auth state changes. Called once on app startup. */
     initAuth() {
       if (this.initialized) return
       this.initialized = true
@@ -86,6 +98,12 @@ export const useAuthStore = defineStore('auth', {
       })
     },
 
+    /**
+     * Sign in with email and password.
+     * @param email - User's email address
+     * @param password - User's password
+     * @returns Authenticated user profile, or throws on failure
+     */
     async login(email: string, password: string): Promise<User | null> {
       this.error = null
       this.loading = true
@@ -105,6 +123,12 @@ export const useAuthStore = defineStore('auth', {
       }
     },
 
+    /**
+     * Register a new user account and create their Firestore profile.
+     * @param email - New user's email address
+     * @param password - New user's password (min 6 characters)
+     * @param displayName - Display name shown in the UI
+     */
     async register(email: string, password: string, displayName: string): Promise<void> {
       this.error = null
       this.loading = true
@@ -129,6 +153,7 @@ export const useAuthStore = defineStore('auth', {
       }
     },
 
+    /** Sign out the current user and clear local state. */
     async logout(): Promise<void> {
       try {
         console.log('API: signOut')

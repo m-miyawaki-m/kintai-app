@@ -1,3 +1,7 @@
+/**
+ * Application entry point.
+ * Initializes Vue app with Pinia (state management) and Vue Router.
+ */
 import { createApp } from 'vue'
 import { createPinia } from 'pinia'
 import App from './App.vue'

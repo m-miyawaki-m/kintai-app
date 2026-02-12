@@ -1,9 +1,16 @@
+/**
+ * LoginView page component.
+ * Provides login and registration forms with email/password authentication.
+ * Includes a dev-mode user selector for quickly switching between demo accounts.
+ * After login, redirects admins to /admin and regular users to /attendance.
+ */
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuth } from '@/composables/useAuth'
 import LoadingSpinner from '@/components/LoadingSpinner.vue'
 
+/** Demo user entry loaded from /dev-users.json */
 interface DevUser {
   label: string
   email: string
@@ -43,6 +50,7 @@ onMounted(async () => {
   }
 })
 
+/** Auto-fill email/password fields when a dev user is selected from dropdown */
 function selectDevUser(event: Event) {
   const select = event.target as HTMLSelectElement
   const user = devUsers.value[select.selectedIndex]
@@ -52,6 +60,7 @@ function selectDevUser(event: Event) {
   }
 }
 
+/** Submit login or registration form and navigate based on user role */
 async function handleSubmit() {
   try {
     if (isRegisterMode.value) {

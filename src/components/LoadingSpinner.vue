@@ -1,6 +1,12 @@
+/**
+ * LoadingSpinner component.
+ * Renders a CSS-animated circular spinner with configurable size and color.
+ */
 <script setup lang="ts">
 defineProps<{
+  /** Spinner diameter: sm (16px), md (32px, default), lg (48px) */
   size?: 'sm' | 'md' | 'lg'
+  /** Tailwind text color class (e.g. 'text-white'). Defaults to 'text-primary-600' */
   color?: string
 }>()
 </script>
